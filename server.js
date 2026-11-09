@@ -4,6 +4,7 @@ const path = require('path');
 const { Connection } = require('@solana/web3.js');
 
 const app = express();
+app.use(express.json());
 const PORT = process.env.PORT || 3000;
 const DB_FILE = path.join(__dirname, 'cache_slang_database.json');
 
@@ -125,7 +126,22 @@ app.get('/api/trends/:region', verifySolanaPayment, (req, res) => {
         }
     });
 });
+// Route POST pour recevoir et mettre à jour les données du scraper
+app.post('/api/update-slang', (req, res) => {
+    try {
+        const newData = req.body; // Récupère les données envoyées par Python
 
+        // Écrire les données reçues dans ton fichier JSON
+        fs.writeFileSync(DB_FILE, JSON.stringify(newData, null, 2), 'utf-8');
+
+        console.log("📥 Nouveaux mots reçus et enregistrés via le scraper !");
+        return res.json({ success: true, message: "Base de données mise à jour avec succès !" });
+
+    } catch (err) {
+        console.error("Erreur lors de la mise à jour de la base :", err);
+        return res.status(500).json({ error: "Erreur serveur lors de la mise à jour." });
+    }
+});
 // Démarrage du serveur
 app.listen(PORT, () => {
     console.log(`🚀 Serveur démarré sur http://localhost:${PORT}`);
