@@ -32,5 +32,6 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          touch cache_slug_database.json
           git add cache_slug_database.json
           git diff --quiet && git diff --staged --quiet || (git commit -m "Mise à jour automatique des données du scraper" && git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main)
