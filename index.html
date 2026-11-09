@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Louetonbien - Trends API Paywall</title>
+    <!-- SDK Solana pour le navigateur -->
+    <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 700px; margin: 40px auto; padding: 0 20px; background: #121212; color: #fff; }
+        .card { background: #1e1e1e; border: 1px solid #333; padding: 25px; border-radius: 12px; margin-bottom: 20px; }
+        button { background: #512da8; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #673ab7; }
+        pre { background: #000; padding: 15px; border-radius: 8px; overflow-x: auto; color: #00ff66; }
+        .error { color: #ff5252; }
+    </style>
+</head>
+<body>
+
+    <h1>🚀 Trend-Tracking API (Web3 Protected)</h1>
+    
+    <div class="card">
+        <h3>1. Connexion Wallet</h3>
+        <button id="connectBtn" onclick="connectWallet()">Se connecter avec Phantom</button>
+        <p id="walletStatus" style="color: #aaa;"></p>
+    </div>
+
+    <div class="card">
+        <h3>2. Accès aux données de tendances</h3>
+        <p>Payer 0.01 SOL pour débloquer l'accès à l'API :</p>
+        <button id="payBtn" onclick="payAndFetch()" disabled>Payer 0.01 SOL & Charger les données</button>
+    </div>
+
+    <div class="card">
+        <h3>Résultat API</h3>
+        <pre id="apiOutput">// Les données s'afficheront ici après paiement...</pre>
+    </div>
+
+    <script>
+        const RECIPIENT_WALLET = "2GbUebpJUYwuxUUPL3Ppo2x9thTCxV9LZqGF723d64zu";
+        let userPublicKey = null;
+
+        // 1. Connexion au Wallet Phantom
+        async function connectWallet() {
+            if ("solana" in window) {
+                try {
+                    const resp = await window.solana.connect();
+                    userPublicKey = resp.publicKey.toString();
+                    document.getElementById("walletStatus").innerText = "Connecté : " + userPublicKey;
+                    document.getElementById("payBtn").disabled = false;
+                } catch (err) {
+                    console.error(err);
+                    alert("Connexion annulée.");
+                }
+            } else {
+                alert("Veuillez installer l'extension Phantom Wallet dans votre navigateur !");
+            }
+        }
+
+        // 2. Paiement et Appel API
+        async function payAndFetch() {
+            const output = document.getElementById("apiOutput");
+            output.innerText = "Traitement du paiement Solana en cours...";
+
+            try {
+                const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('mainnet-beta'));
+                
+                // Transaction de 0.01 SOL (10 000 000 Lamports)
+                const transaction = new solanaWeb3.Transaction().add(
+                    solanaWeb3.SystemProgram.transfer({
+                        fromPubkey: window.solana.publicKey,
+                        toPubkey: new solanaWeb3.PublicKey(RECIPIENT_WALLET),
+                        lamports: 0.01 * solanaWeb3.LAMPORTS_PER_SOL,
+                    })
+                );
+
+                transaction.feePayer = window.solana.publicKey;
+                let { blockhash } = await connection.getLatestBlockhash();
+                transaction.recentBlockhash = blockhash;
+
+                // Demander la signature et envoyer la transaction via Phantom
+                const { signature } = await window.solana.signAndSendTransaction(transaction);
+                output.innerText = `Paiement envoyé ! Signature: ${signature}\nVérification par l'API...`;
+
+                // Interroger l'API Node.js avec le hash de transaction
+                const response = await fetch(`http://localhost:3000/api/trends?tx=${signature}`);
+                const data = await response.json();
+
+                output.innerText = JSON.stringify(data, null, 2);
+
+            } catch (err) {
+                console.error(err);
+                output.innerText = "Erreur : " + (err.message || "Échec du paiement ou de la requête.");
+            }
+        }
+    </script>
+</body>
+</html>

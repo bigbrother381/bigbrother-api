@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@solana/web3.js": "^3.2.0",
+    "express": "^5.3.0"
+  }
+}

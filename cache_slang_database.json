@@ -1,0 +1,58 @@
+{
+  "fr": [
+    {
+      "term": "sigma",
+      "language": "fr",
+      "region": "FR",
+      "definition": "Se dit d'un individu indépendant qui suit sa propre voie.",
+      "source": "TikTok/Instagram"
+    },
+    {
+      "term": "quoicoubeh",
+      "language": "fr",
+      "region": "FR",
+      "definition": "Expression de provocation verbale ludique.",
+      "source": "TikTok"
+    }
+  ],
+  "us": [
+    {
+      "term": "rizz",
+      "language": "en",
+      "region": "US",
+      "definition": "Charme ou capacité de séduction (court pour charisma).",
+      "source": "TikTok/X"
+    },
+    {
+      "term": "skibidi",
+      "language": "en",
+      "region": "US",
+      "definition": "Terme absurde désignant quelque chose de cool, mauvais ou sans sens selon le contexte.",
+      "source": "YouTube Shorts/TikTok"
+    },
+    {
+      "term": "fanum tax",
+      "language": "en",
+      "region": "US",
+      "definition": "Le fait de voler de la nourriture à un ami.",
+      "source": "Twitch/TikTok"
+    }
+  ],
+  "asia": [
+    {
+      "term": "oppa",
+      "language": "ko",
+      "region": "KR",
+      "definition": "Terme coréen utilisé par une femme pour s'adresser à un homme plus âgé qu'elle.",
+      "source": "K-Drama/TikTok"
+    },
+    {
+      "term": "yowai mo",
+      "language": "ja",
+      "region": "JP",
+      "definition": "Expression japonaise popularisée par Jujutsu Kaisen signifiant 'tu es faible'.",
+      "source": "Anime/TikTok"
+    }
+  ],
+  "last_updated": "2026-11-09T09:38:07Z"
+}
