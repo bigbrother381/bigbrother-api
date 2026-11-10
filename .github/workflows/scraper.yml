@@ -4,7 +4,7 @@ import requests
 
 def fetch_online_slang(term):
     """
-    Exemple de requête externe pour enrichir/récupérer automatiquement la définition.
+    Interroge l'API Urban Dictionary (ou fallback) pour les termes US / Globaux.
     """
     try:
         url = f"https://api.urbandictionary.com/v0/define?term={term}"
@@ -12,76 +12,65 @@ def fetch_online_slang(term):
         if response.status_code == 200:
             data = response.json()
             if data.get("list"):
-                # Récupère la première définition disponible
                 first_def = data["list"][0]["definition"].replace("\r\n", " ").replace("\n", " ")
                 return first_def[:150] + "..." if len(first_def) > 150 else first_def
-    except Exception as e:
+    except Exception:
         pass
     return None
 
 def scrape_trends():
-    print("🔄 Démarrage de la collecte dynamique des tendances...")
+    print("🔄 Démarrage de la collecte globale (FR, US, ASIA, LATAM)...")
 
-    # 1. Données France (FR)
-    french_keywords = [
-        {"term": "sigma", "def": "Individu indépendant qui suit sa propre voie"},
-        {"term": "quoicoubeh", "def": "Expression de provocation verbale ludique"},
-        {"term": "cheh", "def": "Bien fait pour toi / Orgueil puni"}
+    # 1. France (FR) - TikTok, Instagram, Kick
+    french_trends = [
+        {"term": "sigma", "language": "fr", "region": "FR", "definition": "Individu indépendant qui suit sa propre voie.", "source": "TikTok/Instagram"},
+        {"term": "quoicoubeh", "language": "fr", "region": "FR", "definition": "Expression de provocation verbale ludique.", "source": "TikTok"},
+        {"term": "cheh", "language": "fr", "region": "FR", "definition": "Bien fait pour toi / Orgueil puni.", "source": "Kick/Twitch"},
+        {"term": "wesh", "language": "fr", "region": "FR", "definition": "Interpellation familière pour saluer ou exprimer la surprise.", "source": "Instagram/Snapchat"}
     ]
-    
-    french_trends = []
-    for item in french_keywords:
-        french_trends.append({
-            "term": item["term"],
-            "language": "fr",
-            "region": "FR",
-            "definition": item["def"],
-            "source": "TikTok/Instagram"
-        })
 
-    # 2. Données US (Récupération automatique si possible)
-    us_keywords = ["rizz", "skibidi", "fanum tax", "gyatt", "mewing"]
+    # 2. États-Unis (US) - Urban Slang & Streaming (Kick/Twitch)
+    us_keywords = ["rizz", "skibidi", "fanum tax", "gyatt", "mewing", "ratio"]
     us_trends = []
-    
     for term in us_keywords:
         auto_def = fetch_online_slang(term)
         us_trends.append({
             "term": term,
             "language": "en",
             "region": "US",
-            "definition": auto_def if auto_def else "Terme viral issu de la culture Web US.",
-            "source": "Twitch/TikTok"
+            "definition": auto_def if auto_def else "Terme viral issu du Web US.",
+            "source": "Kick/Twitch/TikTok"
         })
 
-    # 3. Données Asie (ASIA)
-    asia_keywords = [
-        {"term": "oppa", "lang": "ko", "region": "KR", "def": "Terme coréen utilisé par une femme pour s'adresser à un homme plus âgé", "src": "K-Drama/TikTok"},
-        {"term": "yowai mo", "lang": "ja", "region": "JP", "def": "Expression japonaise signifiant 'tu es faible'", "src": "Anime/TikTok"}
+    # 3. Asie (ASIA) - Anime, K-Drama, XiaoHongShu
+    asia_trends = [
+        {"term": "oppa", "language": "ko", "region": "KR", "definition": "Terme coréen d'affection utilisé par une femme envers un homme plus âgé.", "source": "K-Drama/TikTok"},
+        {"term": "yowai mo", "language": "ja", "region": "JP", "definition": "Expression japonaise popularisée par Jujutsu Kaisen ('tu es faible').", "source": "Anime/TikTok"},
+        {"term": "tang ping", "language": "zh", "region": "CN", "definition": "Mouvement culturel chinois ('s'allonger à plat') rejetant la pression sociale.", "source": "Weibo/RED"}
     ]
-    
-    asia_trends = []
-    for item in asia_keywords:
-        asia_trends.append({
-            "term": item["term"],
-            "language": item["lang"],
-            "region": item["region"],
-            "definition": item["def"],
-            "source": item["src"]
-        })
 
-    # 4. Dictionnaire global lu par le serveur Node.js
+    # 4. NOUVEAU : Amérique Latine (LATAM) - Brésil, Colombie, Argentine
+    latam_trends = [
+        {"term": "tankar", "language": "pt", "region": "BR", "definition": "Argot brésilien issu du gaming signifiant 'supporter' ou 'résister à une situation'.", "source": "Twitch/Kick/Instagram"},
+        {"term": "cria", "language": "pt", "region": "BR", "definition": "Personne originaire de la même favela/quartier, ami de confiance.", "source": "TikTok/Instagram"},
+        {"term": "parce", "language": "es", "region": "CO", "definition": "Terme colombien très courant pour désigner un pote / ami proche.", "source": "Instagram/TikTok"},
+        {"term": "funado", "language": "es", "region": "LATAM", "definition": "Se faire afficher ou 'canceller' publiquement sur les réseaux.", "source": "X/Instagram/TikTok"}
+    ]
+
+    # 5. Dictionnaire global lu par le serveur Node.js
     database = {
         "fr": french_trends,
         "us": us_trends,
         "asia": asia_trends,
+        "latam": latam_trends,
         "last_updated": time.strftime("%Y-%m-%d %H:%M:%SZ")
     }
 
-    # 5. Sauvegarde dans le fichier JSON partagé
+    # 6. Sauvegarde dans le fichier JSON partagé
     with open("cache_slang_database.json", "w", encoding="utf-8") as f:
         json.dump(database, f, ensure_ascii=False, indent=2)
 
-    print("✅ Base de données mise à jour avec succès (FR, US & ASIA) !")
+    print("✅ Base de données mise à jour (FR, US, ASIA & LATAM) !")
 
 if __name__ == "__main__":
     scrape_trends()
