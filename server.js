@@ -26,6 +26,34 @@ app.use(express.static(__dirname));
 
 // Fonctions utilitaires pour l'anti-rejeu
 function getUsedSignatures() {
+const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const { Connection } = require('@solana/web3.js');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+const DB_FILE = path.join(__dirname, 'cache_slang_database.json'); // Corrigé ici en _slang_
+const USED_TX_FILE = path.join(__dirname, 'used_signatures.json');
+
+// Votre adresse Wallet Solana (Phantom)
+const WALLET_ADDRESS = "2GbUebpJUYwuxUUPL3Ppo2x9thTCxV9LZqGF723d64zu";
+
+// Connexion au réseau principal Solana
+const solanaConnection = new Connection('https://api.mainnet-beta.solana.com');
+
+// Middleware CORS
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    next();
+});
+
+// Servir les fichiers statiques du dossier courant
+app.use(express.static(__dirname));
+
+// Fonctions utilitaires pour l'anti-rejeu
+function getUsedSignatures() {
     if (!fs.existsSync(USED_TX_FILE)) return [];
     try {
         return JSON.parse(fs.readFileSync(USED_TX_FILE, 'utf8'));
@@ -156,7 +184,7 @@ app.get('/api/trends/:region', verifySolanaPayment, (req, res) => {
     });
 });
 
-// Démarrage du serveur
+Démarrage du serveur
 app.listen(PORT, () => {
     console.log(`🚀 Serveur démarré sur http://localhost:${PORT}`);
     console.log(`💼 Wallet configuré : ${WALLET_ADDRESS}`);
