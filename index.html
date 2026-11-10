@@ -3,94 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bigbrother - Trends API Paywall</title>
-    <!-- SDK Solana pour le navigateur -->
+    <title>Big Brother API - Tendances & Slang</title>
+    <!-- Tailwind CSS pour un design minimaliste -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Solana Web3.js pour interagir avec Phantom -->
     <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; max-width: 700px; margin: 40px auto; padding: 0 20px; background: #121212; color: #fff; }
-        .card { background: #1e1e1e; border: 1px solid #333; padding: 25px; border-radius: 12px; margin-bottom: 20px; }
-        button { background: #512da8; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
-        button:hover { background: #673ab7; }
-        pre { background: #000; padding: 15px; border-radius: 8px; overflow-x: auto; color: #00ff66; }
-        .error { color: #ff5252; }
-    </style>
 </head>
-<body>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between">
 
-    <h1>🚀 Trend-Tracking API (Web3 Protected)</h1>
-    
-    <div class="card">
-        <h3>1. Connexion Wallet</h3>
-        <button id="connectBtn" onclick="connectWallet()">Se connecter avec Phantom</button>
-        <p id="walletStatus" style="color: #aaa;"></p>
-    </div>
+    <!-- Header -->
+    <header class="border-b border-slate-800 p-6 flex justify-between items-center max-w-5xl mx-auto w-full">
+        <div class="flex items-center space-x-3">
+            <span class="text-2xl">👁️‍🗨️</span>
+            <h1 class="text-xl font-bold tracking-wider">BIG BROTHER API</h1>
+        </div>
+        <div id="wallet-section">
+            <button id="connect-wallet" onclick="connectWallet()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg font-medium transition text-sm">
+                Connecter Phantom
+            </button>
+            <span id="wallet-address" class="hidden text-xs text-indigo-400 bg-indigo-950 px-3 py-2 rounded-lg border border-indigo-800 font-mono"></span>
+        </div>
+    </header>
 
-    <div class="card">
-        <h3>2. Accès aux données de tendances</h3>
-        <p>Payer 0.01 SOL pour débloquer l'accès à l'API :</p>
-        <button id="payBtn" onclick="payAndFetch()" disabled>Payer 0.01 SOL & Charger les données</button>
-    </div>
+    <!-- Main Content -->
+    <main class="max-w-3xl mx-auto p-6 w-full flex-grow">
+        <div class="text-center my-8">
+            <h2 class="text-3xl font-extrabold mb-3">Veille des Tendances Youth Culture</h2>
+            <p class="text-slate-400 text-sm">Accédez aux expressions virales en temps réel (FR, US, ASIA) protégées par le protocole de paiement Solana x402.</p>
+        </div>
 
-    <div class="card">
-        <h3>Résultat API</h3>
-        <pre id="apiOutput">// Les données s'afficheront ici après paiement...</pre>
-    </div>
+        <!-- Box de paiement / Signature -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-8 shadow-xl">
+            <h3 class="text-lg font-semibold mb-3 text-indigo-400">🔓 Déverrouiller l'accès aux données</h3>
+            <p class="text-xs text-slate-400 mb-4">Effectuez un transfert vers le wallet du projet ou entrez une signature de transaction valide pour lancer la requête.</p>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Signature de transaction (TX Hash) :</label>
+                    <input type="text" id="tx-signature" placeholder="Collez votre signature Solana ici (?tx=...)" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 font-mono">
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="fetchTrends()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-lg font-semibold transition text-sm">
+                        Charger les Tendances
+                    </button>
+                </div>
+            </div>
+        </div>
 
+        <!-- Résultats / Affichage des données -->
+        <div id="results-container" class="space-y-6 hidden">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-xl font-bold text-slate-200">📊 Flux des Tendances</h3>
+                <span id="last-updated" class="text-xs text-slate-500"></span>
+            </div>
+            <div id="trends-content" class="grid gap-4">
+                <!-- Les cartes de tendances injectées ici dynamiquement -->
+            </div>
+        </div>
+
+        <!-- Erreur ou message 402 -->
+        <div id="error-box" class="hidden bg-amber-950/40 border border-amber-800/60 rounded-xl p-4 text-amber-200 text-sm">
+            <p id="error-message"></p>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 p-4 text-center text-xs text-slate-500">
+        Big Brother API &bull; Secured by Solana x402 Protocol
+    </footer>
+
+    <!-- Script Logique Front-end -->
     <script>
-        const RECIPIENT_WALLET = "2GbUebpJUYwuxUUPL3Ppo2x9thTCxV9LZqGF723d64zu";
-        let userPublicKey = null;
+        const DEST_WALLET = "2GbUebpJUYwuxUUPL3Ppo2x9thTCxV9LZqGF723d64zu";
 
-        // 1. Connexion au Wallet Phantom
         async function connectWallet() {
             if ("solana" in window) {
                 try {
-                    const resp = await window.solana.connect();
-                    userPublicKey = resp.publicKey.toString();
-                    document.getElementById("walletStatus").innerText = "Connecté : " + userPublicKey;
-                    document.getElementById("payBtn").disabled = false;
+                    const provider = window.solana;
+                    if (provider.isPhantom) {
+                        const response = await provider.connect();
+                        const pubKey = response.publicKey.toString();
+                        
+                        document.getElementById('connect-wallet').classList.add('hidden');
+                        const addrSpan = document.getElementById('wallet-address');
+                        addrSpan.textContent = pubKey.slice(0, 4) + '...' + pubKey.slice(-4);
+                        addrSpan.classList.remove('hidden');
+                    }
                 } catch (err) {
-                    console.error(err);
-                    alert("Connexion annulée.");
+                    console.error("Erreur de connexion wallet :", err);
                 }
             } else {
-                alert("Veuillez installer l'extension Phantom Wallet dans votre navigateur !");
+                alert("Veuillez installer le portefeuille Phantom pour continuer !");
             }
         }
 
-        // 2. Paiement et Appel API
-        async function payAndFetch() {
-            const output = document.getElementById("apiOutput");
-            output.innerText = "Traitement du paiement Solana en cours...";
+        async function fetchTrends() {
+            const txSig = document.getElementById('tx-signature').value.trim();
+            const errorBox = document.getElementById('error-box');
+            const resultsContainer = document.getElementById('results-container');
+            const trendsContent = document.getElementById('trends-content');
+
+            errorBox.classList.add('hidden');
+            resultsContainer.classList.add('hidden');
+
+            if (!txSig) {
+                errorBox.classList.remove('hidden');
+                document.getElementById('error-message').textContent = "⚠️ Veuillez renseigner une signature de transaction valide.";
+                return;
+            }
 
             try {
-                const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('mainnet-beta'));
-                
-                // Transaction de 0.01 SOL (10 000 000 Lamports)
-                const transaction = new solanaWeb3.Transaction().add(
-                    solanaWeb3.SystemProgram.transfer({
-                        fromPubkey: window.solana.publicKey,
-                        toPubkey: new solanaWeb3.PublicKey(RECIPIENT_WALLET),
-                        lamports: 0.01 * solanaWeb3.LAMPORTS_PER_SOL,
-                    })
-                );
-
-                transaction.feePayer = window.solana.publicKey;
-                let { blockhash } = await connection.getLatestBlockhash();
-                transaction.recentBlockhash = blockhash;
-
-                // Demander la signature et envoyer la transaction via Phantom
-                const { signature } = await window.solana.signAndSendTransaction(transaction);
-                output.innerText = `Paiement envoyé ! Signature: ${signature}\nVérification par l'API...`;
-
-                // Interroger l'API Node.js avec le hash de transaction
-                const response = await fetch(`http://localhost:3000/api/trends?tx=${signature}`);
+                // Appel vers ton API Node.js avec la signature en paramètre
+                const response = await fetch(`/api/trends?tx=${txSig}`);
                 const data = await response.json();
 
-                output.innerText = JSON.stringify(data, null, 2);
+                if (!response.ok) {
+                    throw new Error(data.error || data.message || "Erreur d'accès à l'API.");
+                }
+
+                // Succès : affichage des données
+                resultsContainer.classList.remove('hidden');
+                document.getElementById('last-updated').textContent = `Mis à jour : ${new Date(data.last_updated).toLocaleString()}`;
+                
+                trendsContent.innerHTML = '';
+
+                // Parcourir les régions (fr, us, asia)
+                ['fr', 'us', 'asia'].forEach(region => {
+                    if (data[region]) {
+                        data[region].forEach(item => {
+                            const card = document.createElement('div');
+                            card.className = "bg-slate-900 border border-slate-800 p-4 rounded-lg flex flex-col justify-between";
+                            card.innerHTML = `
+                                <div>
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="text-xs uppercase bg-indigo-950 text-indigo-300 px-2 py-0.5 rounded font-mono border border-indigo-800">${item.region}</span>
+                                        <span class="text-xs text-slate-500">${item.source}</span>
+                                    </div>
+                                    <h4 class="text-lg font-bold text-white capitalize mb-1">${item.term}</h4>
+                                    <p class="text-sm text-slate-300">${item.definition}</p>
+                                </div>
+                            `;
+                            trendsContent.appendChild(card);
+                        });
+                    }
+                });
 
             } catch (err) {
-                console.error(err);
-                output.innerText = "Erreur : " + (err.message || "Échec du paiement ou de la requête.");
+                errorBox.classList.remove('hidden');
+                document.getElementById('error-message').textContent = `❌ Erreur : ${err.message}`;
             }
         }
     </script>
