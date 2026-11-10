@@ -73,8 +73,8 @@ def scrape_trends():
         "last_updated": time.strftime("%Y-%m-%dT%H:%M:%SZ")
     }
 
-    # Sauvegarde dans le fichier JSON partagé
-    with open("cache_slang_database.json", "w", encoding="utf-8") as f:
+    # Sauvegarde dans le fichier JSON partagé (corrigé avec _slug_)
+    with open("cache_slug_database.json", "w", encoding="utf-8") as f:
         json.dump(database, f, ensure_ascii=False, indent=2)
 
     print("✅ Base de données mise à jour avec succès (FR, US & ASIA) !")
