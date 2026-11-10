@@ -1,80 +1,156 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Big Brother API - Tendances & Slang</title>
-    <!-- Tailwind CSS pour un design minimaliste -->
+    <title>Big Brother API - Slang & Trends</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Solana Web3.js pour interagir avec Phantom -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eep2ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            900: '#312e81',
+                            950: '#0f172a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Solana Web3.js -->
     <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        code, .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+    </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white relative overflow-x-hidden">
 
-    <!-- Header -->
-    <header class="border-b border-slate-800 p-6 flex justify-between items-center max-w-5xl mx-auto w-full">
-        <div class="flex items-center space-x-3">
-            <span class="text-2xl">👁️‍🗨️</span>
-            <h1 class="text-xl font-bold tracking-wider">BIG BROTHER API</h1>
-        </div>
-        <div id="wallet-section">
-            <button id="connect-wallet" onclick="connectWallet()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg font-medium transition text-sm">
-                Connecter Phantom
-            </button>
-            <span id="wallet-address" class="hidden text-xs text-indigo-400 bg-indigo-950 px-3 py-2 rounded-lg border border-indigo-800 font-mono"></span>
+    <!-- Glowing Background Gradients -->
+    <div class="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-gradient-to-tr from-indigo-600/20 via-purple-600/10 to-transparent blur-[120px] pointer-events-none -z-10"></div>
+
+    <!-- Navigation Bar -->
+    <header class="border-b border-slate-800/80 glass-panel sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-lg shadow-lg shadow-indigo-500/10">
+                    👁️‍🗨️
+                </div>
+                <div>
+                    <h1 class="text-base font-bold tracking-wide text-white leading-tight">BIG BROTHER <span class="text-indigo-400">API</span></h1>
+                    <p class="text-[10px] text-slate-400 tracking-wider uppercase font-semibold">Slang & Trend Radar</p>
+                </div>
+            </div>
+            
+            <div id="wallet-section">
+                <button id="connect-wallet" onclick="connectWallet()" class="bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700/80 hover:border-slate-600 px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200 flex items-center gap-2 shadow-sm">
+                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                    Connecter Phantom
+                </button>
+                <span id="wallet-address" class="hidden text-xs text-indigo-300 bg-indigo-950/60 px-3 py-2 rounded-xl border border-indigo-500/30 font-mono flex items-center gap-2 shadow-inner">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                    <span id="wallet-text"></span>
+                </span>
+            </div>
         </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="max-w-3xl mx-auto p-6 w-full flex-grow">
-        <div class="text-center my-8">
-            <h2 class="text-3xl font-extrabold mb-3">Veille des Tendances Youth Culture</h2>
-            <p class="text-slate-400 text-sm">Accédez aux expressions virales en temps réel (FR, US, ASIA) protégées par le protocole de paiement Solana x402.</p>
+    <!-- Main Section -->
+    <main class="max-w-4xl mx-auto px-6 py-10 w-full flex-grow">
+
+        <!-- Hero Section -->
+        <div class="text-center max-w-2xl mx-auto mb-10">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 mb-4">
+                <span class="relative flex h-2 w-2">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+                </span>
+                Solana x402 Protocol Enabled
+            </span>
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-3">
+                Veille Slang & Culture Tech
+            </h2>
+            <p class="text-slate-400 text-sm leading-relaxed">
+                Accédez instantanément aux expressions virales et tendances Slang (FR, US, ASIA) décryptées en temps réel par notre moteur d'analyse.
+            </p>
         </div>
 
-        <!-- Box de paiement / Signature -->
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-8 shadow-xl">
-            <h3 class="text-lg font-semibold mb-3 text-indigo-400">🔓 Déverrouiller l'accès aux données</h3>
-            <p class="text-xs text-slate-400 mb-4">Effectuez un transfert vers le wallet du projet ou entrez une signature de transaction valide pour lancer la requête.</p>
-            
+        <!-- Unlock Box Card -->
+        <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 mb-10 backdrop-blur-md shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-2xl pointer-events-none"></div>
+
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-semibold text-white flex items-center gap-2">
+                    <span class="text-lg">🔓</span> Accéder au Flux de Données
+                </h3>
+                <span class="text-[11px] text-slate-400 font-mono bg-slate-950 px-2.5 py-1 rounded-md border border-slate-800">0.001 SOL / requête</span>
+            </div>
+
             <div class="space-y-4">
                 <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1">Signature de transaction (TX Hash) :</label>
-                    <input type="text" id="tx-signature" placeholder="Collez votre signature Solana ici (?tx=...)" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 font-mono">
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">Signature de transaction (Optionnel si paiement manuel) :</label>
+                    <input type="text" id="tx-signature" placeholder="Collez votre signature Solana (TX Hash)..." class="w-full bg-slate-950/80 border border-slate-800 rounded-xl p-3 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 font-mono transition">
                 </div>
-                <div class="flex gap-3">
-                    <button onclick="fetchTrends()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-lg font-semibold transition text-sm">
-                        Charger les Tendances
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                    <button onclick="payAndFetch()" class="sm:col-span-2 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-semibold py-3 px-4 rounded-xl text-xs transition shadow-lg shadow-indigo-600/20 active:scale-[0.99] flex items-center justify-center gap-2">
+                        <span>⚡</span> Payer 0.001 SOL & Charger
+                    </button>
+                    <button onclick="fetchTrends()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold py-3 px-4 rounded-xl text-xs transition border border-slate-700/60 active:scale-[0.99]">
+                        Vérifier TX Hash
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Résultats / Affichage des données -->
+        <!-- Alert / Status Box -->
+        <div id="error-box" class="hidden mb-8 bg-rose-950/40 border border-rose-800/50 rounded-xl p-4 text-rose-300 text-xs flex items-start gap-3 backdrop-blur-sm animate-fade-in">
+            <span class="text-sm">⚠️</span>
+            <p id="error-message" class="mt-0.5 leading-relaxed"></p>
+        </div>
+
+        <!-- Results Container -->
         <div id="results-container" class="space-y-6 hidden">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <h3 class="text-xl font-bold text-slate-200">📊 Flux des Tendances</h3>
-                <span id="last-updated" class="text-xs text-slate-500"></span>
+            <div class="flex justify-between items-center border-b border-slate-800/80 pb-4">
+                <div class="flex items-center gap-2">
+                    <h3 class="text-base font-bold text-slate-100">📊 Slang Trends</h3>
+                    <span class="bg-emerald-500/10 text-emerald-400 text-[10px] font-semibold px-2 py-0.5 rounded-full border border-emerald-500/20">Accès Autorisé</span>
+                </div>
+                <span id="last-updated" class="text-[11px] text-slate-500 font-mono"></span>
             </div>
-            <div id="trends-content" class="grid gap-4">
-                <!-- Les cartes de tendances injectées ici dynamiquement -->
+
+            <div id="trends-content" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Dynamically injected trend cards -->
             </div>
         </div>
 
-        <!-- Erreur ou message 402 -->
-        <div id="error-box" class="hidden bg-amber-950/40 border border-amber-800/60 rounded-xl p-4 text-amber-200 text-sm">
-            <p id="error-message"></p>
-        </div>
     </main>
 
     <!-- Footer -->
-    <footer class="border-t border-slate-800 p-4 text-center text-xs text-slate-500">
-        Big Brother API &bull; Secured by Solana x402 Protocol
+    <footer class="border-t border-slate-800/60 py-6 text-center text-xs text-slate-500">
+        <p>Big Brother API &bull; Protected by Solana x402 Protocol</p>
     </footer>
 
-    <!-- Script Logique Front-end -->
+    <!-- Logic Script -->
     <script>
         const DEST_WALLET = "2GbUebpJUYwuxUUPL3Ppo2x9thTCxV9LZqGF723d64zu";
+        const AMOUNT_LAMPORTS = 0.001 * solanaWeb3.LAMPORTS_PER_SOL;
 
         async function connectWallet() {
             if ("solana" in window) {
@@ -86,14 +162,64 @@
                         
                         document.getElementById('connect-wallet').classList.add('hidden');
                         const addrSpan = document.getElementById('wallet-address');
-                        addrSpan.textContent = pubKey.slice(0, 4) + '...' + pubKey.slice(-4);
+                        document.getElementById('wallet-text').textContent = pubKey.slice(0, 4) + '...' + pubKey.slice(-4);
                         addrSpan.classList.remove('hidden');
                     }
                 } catch (err) {
-                    console.error("Erreur de connexion wallet :", err);
+                    console.error("Erreur connexion :", err);
                 }
             } else {
-                alert("Veuillez installer le portefeuille Phantom pour continuer !");
+                alert("Veuillez installer l'extension Phantom Wallet !");
+            }
+        }
+
+        async function payAndFetch() {
+            const errorBox = document.getElementById('error-box');
+            errorBox.classList.add('hidden');
+
+            if (!window.solana || !window.solana.isPhantom) {
+                alert("Veuillez installer le portefeuille Phantom !");
+                return;
+            }
+
+            try {
+                const provider = window.solana;
+                if (!provider.isConnected) {
+                    await provider.connect();
+                }
+
+                const senderPubKey = provider.publicKey;
+                const connection = new solanaWeb3.Connection(
+                    solanaWeb3.clusterApiUrl('mainnet-beta'), 
+                    'confirmed'
+                );
+
+                const { blockhash } = await connection.getLatestBlockhash();
+
+                const transaction = new solanaWeb3.Transaction({
+                    recentBlockhash: blockhash,
+                    feePayer: senderPubKey,
+                }).add(
+                    solanaWeb3.SystemProgram.transfer({
+                        fromPubkey: senderPubKey,
+                        toPubkey: new solanaWeb3.PublicKey(DEST_WALLET),
+                        lamports: AMOUNT_LAMPORTS,
+                    })
+                );
+
+                const { signature } = await provider.signAndSendTransaction(transaction);
+                
+                document.getElementById('tx-signature').value = signature;
+                
+                // Petit délai pour laisser le temps à la blockchain d'enregistrer la transaction
+                setTimeout(() => {
+                    fetchTrends();
+                }, 2500);
+
+            } catch (err) {
+                console.error("Erreur de paiement :", err);
+                errorBox.classList.remove('hidden');
+                document.getElementById('error-message').textContent = `Échec de la transaction : ${err.message}`;
             }
         }
 
@@ -108,39 +234,36 @@
 
             if (!txSig) {
                 errorBox.classList.remove('hidden');
-                document.getElementById('error-message').textContent = "⚠️ Veuillez renseigner une signature de transaction valide.";
+                document.getElementById('error-message').textContent = "Veuillez effectuer un paiement ou fournir une signature de transaction valide.";
                 return;
             }
 
             try {
-                // Appel vers ton API Node.js avec la signature en paramètre
                 const response = await fetch(`/api/trends?tx=${txSig}`);
                 const data = await response.json();
 
                 if (!response.ok) {
-                    throw new Error(data.error || data.message || "Erreur d'accès à l'API.");
+                    throw new Error(data.error || data.message || "Erreur de validation 402 / API.");
                 }
 
-                // Succès : affichage des données
                 resultsContainer.classList.remove('hidden');
-                document.getElementById('last-updated').textContent = `Mis à jour : ${new Date(data.last_updated).toLocaleString()}`;
+                document.getElementById('last-updated').textContent = `Dernier scan : ${new Date(data.last_updated).toLocaleTimeString()}`;
                 
                 trendsContent.innerHTML = '';
 
-                // Parcourir les régions (fr, us, asia)
                 ['fr', 'us', 'asia'].forEach(region => {
                     if (data[region]) {
                         data[region].forEach(item => {
                             const card = document.createElement('div');
-                            card.className = "bg-slate-900 border border-slate-800 p-4 rounded-lg flex flex-col justify-between";
+                            card.className = "bg-slate-900/80 border border-slate-800 p-5 rounded-xl flex flex-col justify-between hover:border-indigo-500/30 transition-all duration-200 shadow-lg";
                             card.innerHTML = `
                                 <div>
-                                    <div class="flex justify-between items-center mb-2">
-                                        <span class="text-xs uppercase bg-indigo-950 text-indigo-300 px-2 py-0.5 rounded font-mono border border-indigo-800">${item.region}</span>
-                                        <span class="text-xs text-slate-500">${item.source}</span>
+                                    <div class="flex justify-between items-center mb-3">
+                                        <span class="text-[10px] uppercase font-bold bg-indigo-950 text-indigo-400 px-2 py-0.5 rounded-md border border-indigo-800/60 font-mono tracking-wider">${item.region}</span>
+                                        <span class="text-[11px] text-slate-500 font-mono">${item.source}</span>
                                     </div>
-                                    <h4 class="text-lg font-bold text-white capitalize mb-1">${item.term}</h4>
-                                    <p class="text-sm text-slate-300">${item.definition}</p>
+                                    <h4 class="text-base font-bold text-white mb-1.5 capitalize">${item.term}</h4>
+                                    <p class="text-xs text-slate-300 leading-relaxed">${item.definition}</p>
                                 </div>
                             `;
                             trendsContent.appendChild(card);
@@ -150,7 +273,7 @@
 
             } catch (err) {
                 errorBox.classList.remove('hidden');
-                document.getElementById('error-message').textContent = `❌ Erreur : ${err.message}`;
+                document.getElementById('error-message').textContent = err.message;
             }
         }
     </script>
