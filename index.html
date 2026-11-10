@@ -189,8 +189,10 @@
                 }
 
                 const senderPubKey = provider.publicKey;
+                
+                // Connexion directe au RPC public stable Mainnet
                 const connection = new solanaWeb3.Connection(
-                    solanaWeb3.clusterApiUrl('mainnet-beta'), 
+                    'https://api.mainnet-beta.solana.com', 
                     'confirmed'
                 );
 
@@ -214,7 +216,7 @@
                 // Petit délai pour laisser le temps à la blockchain d'enregistrer la transaction
                 setTimeout(() => {
                     fetchTrends();
-                }, 2500);
+                }, 3000);
 
             } catch (err) {
                 console.error("Erreur de paiement :", err);
