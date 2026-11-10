@@ -1,37 +1,88 @@
-name: Automatisation Scraper
+import json
+import time
+import requests
 
-on:
-  schedule:
-    - cron: '0 */6 * * *'
-  workflow_dispatch:
+def fetch_online_slang(term):
+    """
+    Exemple de requête externe pour enrichir/récupérer automatiquement la définition.
+    """
+    try:
+        url = f"https://api.urbandictionary.com/v0/define?term={term}"
+        response = requests.get(url, timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            if data.get("list"):
+                # Récupère la première définition disponible
+                first_def = data["list"][0]["definition"].replace("\r\n", " ").replace("\n", " ")
+                return first_def[:150] + "..." if len(first_def) > 150 else first_def
+    except Exception as e:
+        pass
+    return None
 
-permissions:
-  contents: write
+def scrape_trends():
+    print("🔄 Démarrage de la collecte dynamique des tendances...")
 
-jobs:
-  run-scraper:
-    runs-on: ubuntu-latest
-    steps:
-      - name: 📦 Récupérer le code du dépôt
-        uses: actions/checkout@v4
+    # 1. Données France (FR)
+    french_keywords = [
+        {"term": "sigma", "def": "Individu indépendant qui suit sa propre voie"},
+        {"term": "quoicoubeh", "def": "Expression de provocation verbale ludique"},
+        {"term": "cheh", "def": "Bien fait pour toi / Orgueil puni"}
+    ]
+    
+    french_trends = []
+    for item in french_keywords:
+        french_trends.append({
+            "term": item["term"],
+            "language": "fr",
+            "region": "FR",
+            "definition": item["def"],
+            "source": "TikTok/Instagram"
+        })
 
-      - name: 🐍 Installer Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
+    # 2. Données US (Récupération automatique si possible)
+    us_keywords = ["rizz", "skibidi", "fanum tax", "gyatt", "mewing"]
+    us_trends = []
+    
+    for term in us_keywords:
+        auto_def = fetch_online_slang(term)
+        us_trends.append({
+            "term": term,
+            "language": "en",
+            "region": "US",
+            "definition": auto_def if auto_def else "Terme viral issu de la culture Web US.",
+            "source": "Twitch/TikTok"
+        })
 
-      - name: 📥 Installer les dépendances
-        run: |
-          python -m pip install --upgrade pip
-          pip install requests beautifulsoup4
+    # 3. Données Asie (ASIA)
+    asia_keywords = [
+        {"term": "oppa", "lang": "ko", "region": "KR", "def": "Terme coréen utilisé par une femme pour s'adresser à un homme plus âgé", "src": "K-Drama/TikTok"},
+        {"term": "yowai mo", "lang": "ja", "region": "JP", "def": "Expression japonaise signifiant 'tu es faible'", "src": "Anime/TikTok"}
+    ]
+    
+    asia_trends = []
+    for item in asia_keywords:
+        asia_trends.append({
+            "term": item["term"],
+            "language": item["lang"],
+            "region": item["region"],
+            "definition": item["def"],
+            "source": item["src"]
+        })
 
-      - name: 🚀 Lancer le scraper
-        run: python scraper.py
+    # 4. Dictionnaire global lu par le serveur Node.js
+    database = {
+        "fr": french_trends,
+        "us": us_trends,
+        "asia": asia_trends,
+        "last_updated": time.strftime("%Y-%m-%d %H:%M:%SZ")
+    }
 
-      - name: 💾 Sauvegarder les modifications
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add cache_slug_database.json
-          git diff --cached --quiet || git commit -m "chore: update scraped slang data [skip ci]"
-          git push
+    # 5. Sauvegarde dans le fichier JSON partagé
+    with open("cache_slang_database.json", "w", encoding="utf-8") as f:
+        json.dump(database, f, ensure_ascii=False, indent=2)
+
+    print("✅ Base de données mise à jour avec succès (FR, US & ASIA) !")
+
+if __name__ == "__main__":
+    scrape_trends()
+    
