@@ -6,6 +6,7 @@ const { Connection } = require('@solana/web3.js');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const DB_FILE = path.join(__dirname, 'cache_slug_database.json');
+const USED_TX_FILE = path.join(__dirname, 'used_signatures.json');
 
 // Votre adresse Wallet Solana (Phantom)
 const WALLET_ADDRESS = "2GbUebpJUYwuxUUPL3Ppo2x9thTCxV9LZqGF723d64zu";
@@ -20,18 +21,44 @@ app.use((req, res, next) => {
     next();
 });
 
-// Servir les fichiers statiques du dossier courant (permet de charger index.html)
+// Servir les fichiers statiques du dossier courant
 app.use(express.static(__dirname));
 
-// Middleware de vérification du paiement Solana
+// Fonctions utilitaires pour l'anti-rejeu
+function getUsedSignatures() {
+    if (!fs.existsSync(USED_TX_FILE)) return [];
+    try {
+        return JSON.parse(fs.readFileSync(USED_TX_FILE, 'utf8'));
+    } catch (e) {
+        return [];
+    }
+}
+
+function saveUsedSignature(txSignature) {
+    const used = getUsedSignatures();
+    if (!used.includes(txSignature)) {
+        used.push(txSignature);
+        fs.writeFileSync(USED_TX_FILE, JSON.stringify(used, null, 2));
+    }
+}
+
+// Middleware de vérification du paiement Solana (x402 + Anti-rejeu)
 async function verifySolanaPayment(req, res, next) {
     const txSignature = req.query.tx; // L'utilisateur passe ?tx=SIGNATURE
 
     if (!txSignature) {
-        return res.status(401).json({
-            error: "Accès refusé. Paiement requis.",
+        return res.status(402).json({ // 1. Statut 402 Payment Required
+            error: "Payment Required",
             wallet_destinataire: WALLET_ADDRESS,
             message: "Veuillez effectuer un transfert sur ce wallet et ajouter la signature dans l'URL (?tx=SIGNATURE)"
+        });
+    }
+
+    // 2. Vérification Anti-rejeu : la signature a-t-elle déjà été consommée ?
+    const usedSignatures = getUsedSignatures();
+    if (usedSignatures.includes(txSignature)) {
+        return res.status(403).json({
+            error: "Accès refusé. Cette signature de transaction a déjà été utilisée."
         });
     }
 
@@ -59,6 +86,9 @@ async function verifySolanaPayment(req, res, next) {
             return res.status(403).json({ error: "La transaction n'est pas liée à votre wallet." });
         }
 
+        // Enregistrer la signature pour empêcher sa réutilisation
+        saveUsedSignature(txSignature);
+
         // Paiement validé, on laisse passer
         next();
 
@@ -68,7 +98,7 @@ async function verifySolanaPayment(req, res, next) {
     }
 }
 
-// Route 1 : Configuration publique (pour voir le wallet et le réseau)
+// Route 1 : Configuration publique
 app.get('/api/config', (req, res) => {
     res.json({
         wallet: WALLET_ADDRESS,
@@ -77,7 +107,7 @@ app.get('/api/config', (req, res) => {
     });
 });
 
-// Route 2 : Toutes les tendances (PROTÉGÉE par le paiement)
+// Route 2 : Toutes les tendances (PROTÉGÉE)
 app.get('/api/trends', verifySolanaPayment, (req, res) => {
     fs.readFile(DB_FILE, 'utf8', (err, data) => {
         if (err) {
@@ -97,7 +127,7 @@ app.get('/api/trends', verifySolanaPayment, (req, res) => {
     });
 });
 
-// Route 3 : Tendances par région (PROTÉGÉE par le paiement)
+// Route 3 : Tendances par région (PROTÉGÉE)
 app.get('/api/trends/:region', verifySolanaPayment, (req, res) => {
     const region = req.params.region.toLowerCase();
 
@@ -130,5 +160,5 @@ app.get('/api/trends/:region', verifySolanaPayment, (req, res) => {
 app.listen(PORT, () => {
     console.log(`🚀 Serveur démarré sur http://localhost:${PORT}`);
     console.log(`💼 Wallet configuré : ${WALLET_ADDRESS}`);
-    console.log(`🔒 Système de paiement Solana actif !`);
+    console.log(`🔒 Système de paiement x402 + Anti-rejeu actif !`);
 });
