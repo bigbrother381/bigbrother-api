@@ -1,77 +1,30 @@
-import json
-import time
-import requests
+name: Run Scraper
 
-def fetch_online_slang(term):
-    """
-    Interroge l'API Urban Dictionary (ou fallback) pour les termes US / Globaux.
-    """
-    try:
-        url = f"https://api.urbandictionary.com/v0/define?term={term}"
-        response = requests.get(url, timeout=5)
-        if response.status_code == 200:
-            data = response.json()
-            if data.get("list"):
-                first_def = data["list"][0]["definition"].replace("\r\n", " ").replace("\n", " ")
-                return first_def[:150] + "..." if len(first_def) > 150 else first_def
-    except Exception:
-        pass
-    return None
+on:
+  schedule:
+    # S'exécute toutes les 6 heures (tu peux ajuster la fréquence ici)
+    - cron: '0 */6 * * *'
+  workflow_dispatch: # Permet de lancer le script manuellement depuis GitHub
 
-def scrape_trends():
-    print("🔄 Démarrage de la collecte globale (FR, US, ASIA, LATAM)...")
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
 
-    # 1. France (FR) - TikTok, Instagram, Kick
-    french_trends = [
-        {"term": "sigma", "language": "fr", "region": "FR", "definition": "Individu indépendant qui suit sa propre voie.", "source": "TikTok/Instagram"},
-        {"term": "quoicoubeh", "language": "fr", "region": "FR", "definition": "Expression de provocation verbale ludique.", "source": "TikTok"},
-        {"term": "cheh", "language": "fr", "region": "FR", "definition": "Bien fait pour toi / Orgueil puni.", "source": "Kick/Twitch"},
-        {"term": "wesh", "language": "fr", "region": "FR", "definition": "Interpellation familière pour saluer ou exprimer la surprise.", "source": "Instagram/Snapchat"}
-    ]
+    steps:
+      - name: Baseline Repository Checkout
+        uses: actions/checkout@v4
 
-    # 2. États-Unis (US) - Urban Slang & Streaming (Kick/Twitch)
-    us_keywords = ["rizz", "skibidi", "fanum tax", "gyatt", "mewing", "ratio"]
-    us_trends = []
-    for term in us_keywords:
-        auto_def = fetch_online_slang(term)
-        us_trends.append({
-            "term": term,
-            "language": "en",
-            "region": "US",
-            "definition": auto_def if auto_def else "Terme viral issu du Web US.",
-            "source": "Kick/Twitch/TikTok"
-        })
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
 
-    # 3. Asie (ASIA) - Anime, K-Drama, XiaoHongShu
-    asia_trends = [
-        {"term": "oppa", "language": "ko", "region": "KR", "definition": "Terme coréen d'affection utilisé par une femme envers un homme plus âgé.", "source": "K-Drama/TikTok"},
-        {"term": "yowai mo", "language": "ja", "region": "JP", "definition": "Expression japonaise popularisée par Jujutsu Kaisen ('tu es faible').", "source": "Anime/TikTok"},
-        {"term": "tang ping", "language": "zh", "region": "CN", "definition": "Mouvement culturel chinois ('s'allonger à plat') rejetant la pression sociale.", "source": "Weibo/RED"}
-    ]
+      - name: Install Dependencies
+        run: npm ci
 
-    # 4. NOUVEAU : Amérique Latine (LATAM) - Brésil, Colombie, Argentine
-    latam_trends = [
-        {"term": "tankar", "language": "pt", "region": "BR", "definition": "Argot brésilien issu du gaming signifiant 'supporter' ou 'résister à une situation'.", "source": "Twitch/Kick/Instagram"},
-        {"term": "cria", "language": "pt", "region": "BR", "definition": "Personne originaire de la même favela/quartier, ami de confiance.", "source": "TikTok/Instagram"},
-        {"term": "parce", "language": "es", "region": "CO", "definition": "Terme colombien très courant pour désigner un pote / ami proche.", "source": "Instagram/TikTok"},
-        {"term": "funado", "language": "es", "region": "LATAM", "definition": "Se faire afficher ou 'canceller' publiquement sur les réseaux.", "source": "X/Instagram/TikTok"}
-    ]
-
-    # 5. Dictionnaire global lu par le serveur Node.js
-    database = {
-        "fr": french_trends,
-        "us": us_trends,
-        "asia": asia_trends,
-        "latam": latam_trends,
-        "last_updated": time.strftime("%Y-%m-%d %H:%M:%SZ")
-    }
-
-    # 6. Sauvegarde dans le fichier JSON partagé
-    with open("cache_slang_database.json", "w", encoding="utf-8") as f:
-        json.dump(database, f, ensure_ascii=False, indent=2)
-
-    print("✅ Base de données mise à jour (FR, US, ASIA & LATAM) !")
-
-if __name__ == "__main__":
-    scrape_trends()
-    
+      - name: Run Scraper Script
+        run: node scraper.js
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          
