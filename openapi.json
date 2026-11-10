@@ -1,0 +1,103 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Big Brother API",
+    "description": "API d'agrégation de slang et expressions des réseaux sociaux pour humains et agents IA.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://ton-api-big-brother.onrender.com",
+      "description": "Serveur de Production (Render)"
+    }
+  ],
+  "paths": {
+    "/api/slang": {
+      "get": {
+        "summary": "Obtenir la liste des termes de slang récents",
+        "description": "Retourne les expressions tendance scrapées des plateformes sociales. Nécessite un paiement x402 si le header X-SOL-TxHash est absent ou invalide.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Nombre de termes à retourner (defaut: 10)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "platform",
+            "in": "query",
+            "description": "Filtrer par plateforme (tiktok, instagram, snapchat)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-SOL-TxHash",
+            "in": "header",
+            "description": "Hash de la transaction Solana prouvant le micro-paiement x402",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès - Données de slang retournées",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "term": { "type": "string", "example": "Mewing" },
+                          "definition": { "type": "string", "example": "Technique de posture de la langue..." },
+                          "platform": { "type": "string", "example": "tiktok" },
+                          "popularity": { "type": "number", "example": 98.5 }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Payment Required - Instructions de paiement x402 via Solana",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "integer", "example": 402 },
+                    "message": { "type": "string", "example": "Payment Required" },
+                    "payment_details": {
+                      "type": "object",
+                      "properties": {
+                        "protocol": { "type": "string", "example": "x402" },
+                        "network": { "type": "string", "example": "solana" },
+                        "amount_sol": { "type": "number", "example": 0.001 },
+                        "recipient_address": { "type": "string", "example": "2GbUebpJUYwuxUUPL3Ppo2x9thTCxV9LZqGF723d64zu" },
+                        "instruction": { "type": "string", "example": "Effectuez le paiement puis réessayez la requête avec le header X-SOL-TxHash" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
