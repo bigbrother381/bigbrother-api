@@ -5,35 +5,7 @@ const { Connection } = require('@solana/web3.js');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const DB_FILE = path.join(__dirname, 'cache_slug_database.json');
-const USED_TX_FILE = path.join(__dirname, 'used_signatures.json');
-
-// Votre adresse Wallet Solana (Phantom)
-const WALLET_ADDRESS = "2GbUebpJUYwuxUUPL3Ppo2x9thTCxV9LZqGF723d64zu";
-
-// Connexion au réseau principal Solana
-const solanaConnection = new Connection('https://api.mainnet-beta.solana.com');
-
-// Middleware CORS
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    next();
-});
-
-// Servir les fichiers statiques du dossier courant
-app.use(express.static(__dirname));
-
-// Fonctions utilitaires pour l'anti-rejeu
-function getUsedSignatures() {
-const express = require('express');
-const fs = require('fs');
-const path = require('path');
-const { Connection } = require('@solana/web3.js');
-
-const app = express();
-const PORT = process.env.PORT || 3000;
-const DB_FILE = path.join(__dirname, 'cache_slang_database.json'); // Corrigé ici en _slang_
+const DB_FILE = path.join(__dirname, 'cache_slang_database.json');
 const USED_TX_FILE = path.join(__dirname, 'used_signatures.json');
 
 // Votre adresse Wallet Solana (Phantom)
@@ -75,14 +47,14 @@ async function verifySolanaPayment(req, res, next) {
     const txSignature = req.query.tx; // L'utilisateur passe ?tx=SIGNATURE
 
     if (!txSignature) {
-        return res.status(402).json({ // 1. Statut 402 Payment Required
+        return res.status(402).json({ 
             error: "Payment Required",
             wallet_destinataire: WALLET_ADDRESS,
             message: "Veuillez effectuer un transfert sur ce wallet et ajouter la signature dans l'URL (?tx=SIGNATURE)"
         });
     }
 
-    // 2. Vérification Anti-rejeu : la signature a-t-elle déjà été consommée ?
+    // Vérification Anti-rejeu : la signature a-t-elle déjà été consommée ?
     const usedSignatures = getUsedSignatures();
     if (usedSignatures.includes(txSignature)) {
         return res.status(403).json({
@@ -99,7 +71,7 @@ async function verifySolanaPayment(req, res, next) {
             return res.status(400).json({ error: "Transaction introuvable sur la blockchain." });
         }
 
-        // Vérification basique que votre wallet est impliqué dans la transaction
+        // Vérification que votre wallet est impliqué dans la transaction
         const accountKeys = tx.transaction.message.getAccountKeys();
         let isForMe = false;
 
@@ -131,7 +103,7 @@ app.get('/api/config', (req, res) => {
     res.json({
         wallet: WALLET_ADDRESS,
         network: "solana",
-        currency: "USDC / SOL"
+        currency: "SOL"
     });
 });
 
@@ -184,7 +156,7 @@ app.get('/api/trends/:region', verifySolanaPayment, (req, res) => {
     });
 });
 
-Démarrage du serveur
+// Démarrage du serveur
 app.listen(PORT, () => {
     console.log(`🚀 Serveur démarré sur http://localhost:${PORT}`);
     console.log(`💼 Wallet configuré : ${WALLET_ADDRESS}`);
