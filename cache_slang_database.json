@@ -1,37 +1,58 @@
-# 👁️ Big Brother API
-
-> API automatisée de veille et de structuration du slang et des tendances émergentes de la youth culture.
-
-Big Brother est un outil qui extrait, analyse et centralise les expressions, le vocabulaire et les tendances virales issus des réseaux sociaux (TikTok, Instagram, Snapchat) sur trois zones clés : **France, États-Unis et Asie**.
-
----
-
-## 🚀 Fonctionnalités clés
-
-- **Scraping automatisé :** Collecte en continu des données sans intervention humaine (exécuté toutes les 6 heures via GitHub Actions).
-- **Mise en cache rapide :** Structuration immédiate des données dans une base JSON légère (`cache_slug_database.json`) pour garantir des temps de réponse ultra-rapides.
-- **API REST disponible :** Hébergée et déployée sur Render, prête à alimenter n'importe quel client (application web, mobile ou bot).
-- **Couverture multilingue & multi-région :** Analyse comparative du slang en FR, US et Asie.
-
----
-
-## 🛠️ Stack Technique
-
-- **Langage :** Python 3.10
-- **Extraction :** Requests, BeautifulSoup4
-- **Automation & CI/CD :** GitHub Actions
-- **Hébergement API :** Render
-
----
-
-## 📊 Structure des données
-
-Les réponses de l'API s'appuient sur un format JSON optimisé :
-
-```json
 {
-  "region": "US",
-  "term": "exemple",
-  "definition": "...",
-  "updated_at": "2026-11-10T00:00:00Z"
+  "fr": [
+    {
+      "term": "sigma",
+      "language": "fr",
+      "region": "FR",
+      "definition": "Se dit d'un individu indépendant qui suit sa propre voie.",
+      "source": "TikTok/Instagram"
+    },
+    {
+      "term": "quoicoubeh",
+      "language": "fr",
+      "region": "FR",
+      "definition": "Expression de provocation verbale ludique.",
+      "source": "TikTok"
+    }
+  ],
+  "us": [
+    {
+      "term": "rizz",
+      "language": "en",
+      "region": "US",
+      "definition": "Charme ou capacité de séduction (court pour charisma).",
+      "source": "TikTok/X"
+    },
+    {
+      "term": "skibidi",
+      "language": "en",
+      "region": "US",
+      "definition": "Terme absurde désignant quelque chose de cool, mauvais ou sans sens selon le contexte.",
+      "source": "YouTube Shorts/TikTok"
+    },
+    {
+      "term": "fanum tax",
+      "language": "en",
+      "region": "US",
+      "definition": "Le fait de voler de la nourriture à un ami.",
+      "source": "Twitch/TikTok"
+    }
+  ],
+  "asia": [
+    {
+      "term": "oppa",
+      "language": "ko",
+      "region": "KR",
+      "definition": "Terme coréen utilisé par une femme pour s'adresser à un homme plus âgé qu'elle.",
+      "source": "K-Drama/TikTok"
+    },
+    {
+      "term": "yowai mo",
+      "language": "ja",
+      "region": "JP",
+      "definition": "Expression japonaise popularisée par Jujutsu Kaisen signifiant 'tu es faible'.",
+      "source": "Anime/TikTok"
+    }
+  ],
+  "last_updated": "2026-11-10T18:00:00Z"
 }
