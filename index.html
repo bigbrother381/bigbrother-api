@@ -24,7 +24,7 @@
             }
         }
     </script>
-    <!-- Solana Web3.js -->
+    <!-- Solana Web3.js pour les conversions de lamports -->
     <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -127,7 +127,7 @@
 
         <!-- Results Container -->
         <div id="results-container" class="space-y-6 hidden">
-            <div class="flex justify-between items-center border-b border-slate-800/80 pb-4">
+            <div class="flex justify-space items-center border-b border-slate-800/80 pb-4">
                 <div class="flex items-center gap-2">
                     <h3 class="text-base font-bold text-slate-100">📊 Slang Trends</h3>
                     <span class="bg-emerald-500/10 text-emerald-400 text-[10px] font-semibold px-2 py-0.5 rounded-full border border-emerald-500/20">Accès Autorisé</span>
@@ -150,7 +150,7 @@
     <!-- Logic Script -->
     <script>
         const DEST_WALLET = "2GbUebpJUYwuxUUPL3Ppo2x9thTCxV9LZqGF723d64zu";
-        const AMOUNT_LAMPORTS = 0.001 * solanaWeb3.LAMPORTS_PER_SOL;
+        const AMOUNT_LAMPORTS = 0.001 * 1000000000; // 0.001 SOL en Lamports
 
         async function connectWallet() {
             if ("solana" in window) {
@@ -188,32 +188,25 @@
                     await provider.connect();
                 }
 
-                const senderPubKey = provider.publicKey;
-                
-                // Connexion directe au RPC public stable Mainnet
-                const connection = new solanaWeb3.Connection(
-                    'https://api.mainnet-beta.solana.com', 
-                    'confirmed'
-                );
-
-                const { blockhash } = await connection.getLatestBlockhash();
-
-                const transaction = new solanaWeb3.Transaction({
-                    recentBlockhash: blockhash,
-                    feePayer: senderPubKey,
-                }).add(
+                // Utilisation de l'API de transfert direct Phantom (plus stable)
+                const connection = new solanaWeb3.Connection('https://api.mainnet-beta.solana.com', 'confirmed');
+                const transaction = new solanaWeb3.Transaction().add(
                     solanaWeb3.SystemProgram.transfer({
-                        fromPubkey: senderPubKey,
+                        fromPubkey: provider.publicKey,
                         toPubkey: new solanaWeb3.PublicKey(DEST_WALLET),
                         lamports: AMOUNT_LAMPORTS,
                     })
                 );
 
-                const { signature } = await provider.signAndSendTransaction(transaction);
+                const { blockhash } = await connection.getLatestBlockhash();
+                transaction.recentBlockhash = blockhash;
+                transaction.feePayer = provider.publicKey;
+
+                const signed = await provider.signTransaction(transaction);
+                const signature = await connection.sendRawTransaction(signed.serialize());
                 
                 document.getElementById('tx-signature').value = signature;
                 
-                // Petit délai pour laisser le temps à la blockchain d'enregistrer la transaction
                 setTimeout(() => {
                     fetchTrends();
                 }, 3000);
