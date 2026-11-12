@@ -1,50 +1,167 @@
-# 👁️ BigBrother Trends API
+# 🌐 Big Brother API — Real-Time Geopolitical & Energy Intelligence (x402 M2M Protocol)
 
-> **Pay-per-Call Agent-to-Agent (M2M) & Human Web3 Trends API** powered by Solana micro-transactions.
+[![API Status](https://img.shields.io/badge/API-Online-brightgreen)](https://big-brother-api.onrender.com/health)
+[![Protocol](https://img.shields.io/badge/Paywall-x402%20Solana%20USDC-purple)](https://solana.com)
+[![Architecture](https://img.shields.io/badge/Architecture-Agent--First%20%2F%20M2M-blue)](#-agent-integration-quickstart)
+[![Database](https://img.shields.io/badge/Database-Neon%20PostgreSQL-cyan)](https://neon.tech)
 
-`bigbrother-api` est une API de tendances en temps réel conçue pour être consommée de manière **totalement autonome par des agents d'intelligence artificielle (M2M)** ainsi que par des applications humaines. Elle intègre le standard **HTTP 402 (Payment Required)** et les micro-paiements sur la blockchain Solana.
-
----
-
-## ⚡ Fonctionnalités
-
-- 🤖 **Agent-First (M2M Ready)** : Réponse structurée avec le statut `HTTP 402` permettant aux agents IA d'effectuer des paiements automatiques en Solana.
-- 💳 **Micro-paiements Web3** : Facturation à la requête (Pay-per-Call) via des transactions vérifiées sur la blockchain Solana.
-- 🔄 **Mises à jour automatisées** : Scraper Python autonome tournant sur **GitHub Actions** mis à jour quotidiennement sans serveur dédié.
-- 🌐 **Architecture hybride** : Compatible avec l'interface web (Phantom Wallet) et les requêtes programmatic (cURL, Python, JS, LangChain, MCP).
+> **Agent-First Autonomous Intelligence API**  
+> Streamlined Machine-to-Machine (M2M) intelligence delivery for Autonomous AI Agents. Provides structured JSON data covering global geopolitical alerts, energy market shifts, and critical maritime logistics.
 
 ---
 
-## 🚀 Endpoints API
+## 🤖 Agent Integration Quickstart
 
-### 1. Configuration Publique
-Découverte du wallet de destination et des réseaux pris en charge.
-
-- **URL :** `GET /api/config`
-- **Accès :** Gratuit / Public
-
-### 2. Tendances Globales (Protégé)
-Récupération de l'ensemble des tendances du cache.
-
-- **URL :** `GET /api/trends`
-- **Header requis :** `x-payment-signature: <SIGNATURE_SOLANA>` (ou paramètre `?tx=<SIGNATURE_SOLANA>`)
-- **Accès sans signature :** Renseigne le code `402 Payment Required` et les détails du transfert.
-
-### 3. Tendances par Région (Protégé)
-Récupération des tendances pour une zone spécifique (ex: `fr`, `us`, `asia`).
-
-- **URL :** `GET /api/trends/:region`
-- **Header requis :** `x-payment-signature: <SIGNATURE_SOLANA>` (ou paramètre `?tx=<SIGNATURE_SOLANA>`)
+### 1. Healthcheck (Free Endpoint)
+Before executing paid transactions, check system health and database availability:
+```http
+GET /health HTTP/1.1
+Host: big-brother-api.onrender.com
+```
+**Response (200 OK):**
+```json
+{
+  "status": "ok",
+  "timestamp": "2026-11-12T01:20:00.000Z"
+}
+```
 
 ---
 
-## 🤖 Flux d'intégration pour Agents IA (HTTP 402)
+### 2. Request Data & Paywall Flow (HTTP 402)
+To request intelligence feed, call `/api/v1/intel`. If unauthenticated/unpaid, the API responds with `402 Payment Required` and execution instructions.
 
-1. **Requête initiale :** L'agent IA envoie une requête `GET` sur `/api/trends`.
-2. **Réponse 402 :** Si aucune signature n'est fournie, le serveur répond avec un statut `402 Payment Required` :
-   ```json
-   {
-     "error": "Accès refusé. Paiement requis.",
-     "wallet_destinataire": "2GbUebpJUYwuxUUPL3Ppo2x9thTCxV9LZqGF723d64zu",
-     "message": "Veuillez effectuer un transfert sur ce wallet et ajouter la signature dans l'URL (?tx=SIGNATURE)"
-   }
+```http
+GET /api/v1/intel?category=energy&limit=50 HTTP/1.1
+Host: big-brother-api.onrender.com
+```
+
+**Response (402 Payment Required):**
+```json
+{
+  "status": 402,
+  "error": "Payment Required",
+  "message": "Access requires a 0.01 USDC transfer on Solana",
+  "payment_details": {
+    "protocol": "x402",
+    "network": "solana-mainnet",
+    "currency": "USDC",
+    "amount": 0.01,
+    "recipient_wallet": "2GbUebpJUYwuxUUPL3Ppo2x9thTCxV9LZqGF723d64zu",
+    "usdc_mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "max_age_seconds": 3600
+  },
+  "instructions": "Send transaction, then retry request with header 'x-payment-signature: <tx_signature>'"
+}
+```
+
+---
+
+### 3. Fulfill Payment & Access Data (HTTP 200)
+1. Execute SPL USDC transfer of **0.01 USDC** to `2GbUebpJUYwuxUUPL3Ppo2x9thTCxV9LZqGF723d64zu` on Solana Mainnet.
+2. Re-issue request including the `x-payment-signature` header:
+
+```http
+GET /api/v1/intel?category=geopolitics&limit=10 HTTP/1.1
+Host: big-brother-api.onrender.com
+x-payment-signature: 5wHu...txSignatureHash...9kPz
+```
+
+**Response (200 OK):**
+```json
+{
+  "status": "success",
+  "served_at": "2026-11-12T01:20:05.000Z",
+  "retention_days": 60,
+  "payment": {
+    "payer": "BN8dN6...M1rm",
+    "amount": 0.01,
+    "currency": "USDC"
+  },
+  "data": {
+    "latest": {
+      "timestamp": "2026-11-12T01:15:00.000Z",
+      "summary": "Global Monitoring Snapshot",
+      "alerts_count": 3
+    }
+  },
+  "history": {
+    "order": "newest_first",
+    "total": 120,
+    "count": 10,
+    "items": [
+      {
+        "id": "cm3...id",
+        "category": "geopolitics",
+        "title": "Red Sea Shipping Channel Tensions",
+        "urgency": "HIGH",
+        "payload": { ... },
+        "timestamp": "2026-11-12T01:00:00.000Z"
+      }
+    ]
+  }
+}
+```
+
+---
+
+## 🛠 API Query Parameters
+
+| Parameter | Type | Allowed Values | Default | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `category` | String | `geopolitics`, `energy`, `maritime` | *All* | Filter output feed by operational domain. |
+| `limit` | Integer | `1` to `500` | `100` | Max entries returned in `history.items`. |
+
+> **Note:** Query validation errors (`400 Bad Request`) are evaluated **before** payment verification. Agents never lose funds on malformed parameters.
+
+---
+
+## 🔒 Security & Replay Protection
+
+- **Replay Protection:** Every transaction signature is recorded on Neon PostgreSQL (`PaymentTransaction`). Re-using a spent signature returns `402 Transaction already spent`.
+- **Max Age Control:** Payments older than `PAYMENT_MAX_AGE_SECONDS` (3600s) are automatically rejected.
+- **RPC Availability:** If RPC validation fails temporarily, API returns `503 Service Unavailable`—allowing agents to retry safely with the same signature without burning tokens.
+
+---
+
+## ⚡ Error Codes Reference
+
+| HTTP Code | Error Key | Cause | Action for Agent |
+| :--- | :--- | :--- | :--- |
+| `400` | `invalid_category` / `invalid_limit` | Query parameters outside valid bounds | Fix query parameters and retry (no payment needed). |
+| `402` | `payment_required` | Missing `x-payment-signature` header | Perform 0.01 USDC transfer on Solana and submit TX hash. |
+| `402` | `tx_spent` / `tx_invalid` | Signature already used or invalid on-chain TX | Generate a fresh USDC payment transaction. |
+| `503` | `cache_unavailable` | Scraper initializing first data cycle | Wait 10–30 seconds and retry. |
+| `503` | `rpc_unavailable` | Solana RPC rate-limited or unreachable | Retry request with the **same** signature in 5 seconds. |
+
+---
+
+## 📁 Repository & System Architecture
+
+```text
+mnp-bigbrother/
+├── backend/
+│   ├── server.js               # Express API entry point & routing
+│   ├── middleware/x402.js      # Solana On-Chain USDC & anti-replay validator
+│   ├── lib/intel-store.js      # Neon DB ingestion & historic data query
+│   └── lib/retention.js        # Automatic 60-day data purging background job
+├── scraper/
+│   ├── intel_scraper.py        # Autonomous multi-source python aggregator
+│   └── intel_cache.json        # Atomic local JSON buffer
+├── backend/prisma/
+│   └── schema.prisma           # PostgreSQL schema (IntelReport & PaymentTransaction)
+├── Dockerfile                  # Single-container production runtime (Node + Python)
+└── render.yaml                 # Infrastructure Blueprint configuration
+```
+
+---
+
+## 📜 Maintenance & Data Retention Rules
+
+1. **60-Day Retention Period:** `INTEL_RETENTION_DAYS=60` purges old intelligence snapshots automatically.
+2. **Neon Serverless PostgreSQL:** Guarantees zero data loss across Render free-tier container restarts/sleep cycles.
+3. **Uptime Monitoring:** Ping `GET /health` every 5 minutes to prevent container sleep for continuous 24/7 scraping.
+
+---
+
+© 2026 **Big Brother API** — Built for Machine-to-Machine Autonomous Economies.
